@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0" />
+    <link href="https://js.radar.com/v4.4.3/radar.css" rel="stylesheet">
+    <script src="https://js.radar.com/v4.4.3/radar.min.js"></script>
+  </head>
+
+  <body>
+    <div class= "w-screen">
+        <%= form_with url: "/forecasts/show", method: :get do |form| %>
+            <div class="flex items-center justify-center w-full flex-row">
+                <div id="autocomplete" class= "flex w-md">
+                    <script type="text/javascript">
+                    Radar.initialize("<%= Rails.application.credentials.radar[:client_key] %>");
+
+                    // create autocomplete input
+                    Radar.ui.autocomplete({
+                        container: 'autocomplete',
+                        showMarkers: true,
+                        markerColor: '#ACBDC8',
+                        responsive: true,
+                        width: '600px',
+                        maxHeight: '600px',
+                        placeholder: 'Search address',
+                        limit: 8,
+                        minCharacters: 3,
+                        // omit near to use default IP address location
+                        near: null,
+                        onSelection: (address) => {
+                            zip_code = address["postalCode"];
+                            document.getElementById("postal_code").value = zip_code;
+
+                            latitude = address["latitude"];
+                            document.getElementById("latitude").value = latitude;
+
+                            longitude = address["longitude"];
+                            document.getElementById("longitude").value = longitude;
+                        },
+                    });
+                    </script>
+                </div>
+
+                <%= form.hidden_field :latitude, value: nil %>
+                <%= form.hidden_field :longitude, value: nil %>
+                <%= form.hidden_field :postal_code, value: nil %>
+                <%= form.submit "Search", class: "flex bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-3 rounded inline-block" %>
+            </div>
+        <% end %>
+    </div>
+  </body>
+</html>
