@@ -67,6 +67,6 @@ jobs:
           bundler-cache: true
 
       - name: Run test suite
-        run: bin/rspec
+        run: bundle exec rspec
 
 
