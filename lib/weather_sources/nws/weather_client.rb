@@ -3,12 +3,19 @@ module WeatherSources
     class WeatherClient
       NWS_API_BASE_URL = "https://api.weather.gov"
 
+      def initialize(http_conn = nil)
+        @http_conn = http_conn || Faraday.new(NWS_API_BASE_URL)
+      end
+
       def get_current_weather(latitude, longitude)
         weather_office_data = fetch_office_id_and_point_from_coordinates(latitude, longitude)
 
         station_id = fetch_station_for_coordinates(weather_office_data)
 
         fetch_latest_station_reading(station_id)
+      rescue WeatherSources::Errors::WeatherDataFetchError => e
+        Rails.logger.error("Failed to fetch weather data at URL: #{e.url}. Status: #{e.status_code}")
+        raise e
       end
 
       private
@@ -30,12 +37,15 @@ module WeatherSources
       end
 
       def get(route)
-        response = Faraday.get("#{NWS_API_BASE_URL}/#{route}")
+        response = @http_conn.get(route)
 
         if response.status == 200
           JSON.parse(response.body)
         else
-          raise "ohno!"
+          raise WeatherSources::Errors::WeatherDataFetchError.new(
+            status_code: response.status,
+            url: "#{NWS_API_BASE_URL}#{route}"
+          )
         end
       end
 
